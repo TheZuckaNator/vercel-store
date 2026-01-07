@@ -1,0 +1,28 @@
+{
+  "name": "mph-nft-store",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "node": "hardhat node",
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.cjs",
+    "server": "json-server --watch db.json --port 3001"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "ethers": "^6.9.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "hardhat": "^2.19.0",
+    "json-server": "^0.17.4",
+    "vite": "^5.0.0"
+  }
+}

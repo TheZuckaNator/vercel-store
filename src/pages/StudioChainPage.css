@@ -1,0 +1,435 @@
+.studiochain-page {
+  padding: 1rem;
+}
+
+.studiochain-page h2 {
+  margin: 0 0 0.5rem 0;
+  color: #00d4ff;
+}
+
+.studiochain-page .subtitle {
+  color: #888;
+  margin-bottom: 1.5rem;
+}
+
+.sub-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #333;
+}
+
+.sub-tabs button {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.sub-tabs button:hover {
+  color: #fff;
+}
+
+.sub-tabs button.active {
+  color: #00d4ff;
+  border-bottom: 2px solid #00d4ff;
+}
+
+.tier-section {
+  margin-bottom: 2rem;
+}
+
+.tier-section h3 {
+  color: #fff;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #333;
+}
+
+.items-grid, .listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.item-card, .listing-card {
+  background: #1a1a2e;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #333;
+}
+
+.item-card:hover, .listing-card:hover {
+  border-color: #00d4ff;
+}
+
+.item-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.item-info h4, .listing-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: #fff;
+}
+
+.item-desc {
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.item-price {
+  color: #00d4ff;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.item-remaining {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.item-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.item-actions input {
+  width: 60px;
+  padding: 0.5rem;
+  background: #0a0a0f;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+}
+
+.item-actions button, .listing-card button {
+  flex: 1;
+  padding: 0.5rem;
+  background: #00d4ff;
+  border: none;
+  border-radius: 4px;
+  color: #000;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.item-actions button:disabled {
+  background: #333;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: #ff4444 !important;
+  color: #fff !important;
+}
+
+.connect-prompt {
+  color: #888;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.seller {
+  color: #666;
+  font-size: 0.8rem;
+  margin: 0.5rem 0;
+}
+
+.secondary-section {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 900px) {
+  .secondary-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.marketplace-listings h3, .create-listing h3 {
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.create-listing {
+  background: #1a1a2e;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  height: fit-content;
+}
+
+.your-nfts {
+  color: #888;
+  margin-bottom: 0.5rem;
+}
+
+.balance-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.balance-item {
+  background: #0a0a0f;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #00d4ff;
+}
+
+.create-listing form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.create-listing input, .create-listing select {
+  padding: 0.75rem;
+  background: #0a0a0f;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+}
+
+.create-listing button {
+  padding: 0.75rem;
+  background: #00d4ff;
+  border: none;
+  border-radius: 4px;
+  color: #000;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.my-listings {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+}
+
+.my-listings h4 {
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+
+.my-listing-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: #0a0a0f;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.my-listing-item span {
+  color: #888;
+}
+
+.my-listing-item button {
+  padding: 0.25rem 0.5rem;
+  background: #ff4444;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.no-items {
+  color: #666;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Edit functionality */
+.listing-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.edit-btn {
+  padding: 0.4rem 0.8rem;
+  background: transparent;
+  border: 1px solid #00d4ff;
+  border-radius: 4px;
+  color: #00d4ff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.edit-btn:hover {
+  background: #00d4ff;
+  color: #000;
+}
+
+.deadline {
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.deadline-small {
+  color: #666;
+  font-size: 0.75rem;
+}
+
+.my-listing-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.my-listing-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: #0a0a0f;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: #1a1a2e;
+  border: 1px solid #00d4ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.modal-content h2 {
+  color: #00d4ff;
+  margin-bottom: 1rem;
+}
+
+.modal-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.modal-item h3 {
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.current-info {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  background: #0a0a0f;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+}
+
+.form-hint {
+  display: block;
+  color: #666;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.edit-summary {
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid #00d4ff;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.edit-summary h4 {
+  color: #00d4ff;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.edit-summary ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.edit-summary li {
+  color: #fff;
+  font-size: 0.8rem;
+  padding: 0.2rem 0;
+}
+
+.edit-summary li::before {
+  content: "→ ";
+  color: #22c55e;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modal-cancel,
+.modal-confirm {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modal-cancel {
+  background: transparent;
+  border: 1px solid #333;
+  color: #888;
+}
+
+.modal-confirm {
+  background: #00d4ff;
+  border: none;
+  color: #000;
+}

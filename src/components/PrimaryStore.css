@@ -1,0 +1,146 @@
+.primary-store { animation: fadeIn 0.3s ease; }
+
+.store-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.store-header h1 { font-family: 'Orbitron', monospace; font-size: 1.8rem; margin-bottom: 0.25rem; }
+.store-header p { color: var(--text-secondary); }
+
+.tier-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.tier-filters button {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.tier-filters button:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+.tier-filters button.active { background: rgba(0, 255, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan); }
+
+.empty-state { text-align: center; padding: 4rem; color: var(--text-secondary); }
+.empty-state .empty-icon { font-size: 4rem; margin-bottom: 1rem; }
+
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.item-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.item-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+.item-card.rarity-epic { border-color: #a855f7; }
+.item-card.rarity-legendary { border-color: #fbbf24; box-shadow: 0 0 20px rgba(251, 191, 36, 0.2); }
+
+.item-image {
+  position: relative;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.item-image img { 
+  width: 70%; 
+  height: 70%; 
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.3));
+}
+
+.tier-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.rarity-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.rarity-badge.common { background: #666; color: white; }
+.rarity-badge.uncommon { background: #22c55e; color: white; }
+.rarity-badge.rare { background: #4a90d9; color: white; }
+.rarity-badge.epic { background: #a855f7; color: white; }
+.rarity-badge.legendary { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; }
+
+.item-details { padding: 1rem; }
+.item-details h3 { font-family: 'Orbitron', monospace; font-size: 1rem; margin-bottom: 0.25rem; }
+.item-desc { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
+
+.item-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
+}
+
+.stat { flex: 1; text-align: center; }
+.stat .label { display: block; font-size: 0.6rem; color: var(--text-secondary); }
+.stat .value { font-family: 'Orbitron', monospace; font-size: 0.85rem; color: var(--neon-cyan); }
+
+.price-row { text-align: center; margin-bottom: 0.75rem; }
+.price { font-family: 'Orbitron', monospace; font-size: 1.1rem; color: var(--neon-pink); }
+
+.qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.qty-row button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--neon-cyan);
+  background: transparent;
+  color: var(--neon-cyan);
+  font-size: 1.2rem;
+}
+
+.qty-row span { font-family: 'Orbitron', monospace; min-width: 30px; text-align: center; }
+
+.buy-btn {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.85rem;
+  background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+  color: white;
+}
+
+.buy-btn:hover:not(:disabled) { box-shadow: 0 0 20px rgba(191, 0, 255, 0.5); }
+.buy-btn.sold-out { background: #333; }

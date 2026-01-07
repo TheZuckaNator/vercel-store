@@ -1,0 +1,22 @@
+.admin-panel { animation: fadeIn 0.3s ease; }
+.admin-panel h1 { font-family: 'Orbitron', monospace; font-size: 1.8rem; margin-bottom: 2rem; }
+
+.admin-section { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.admin-section h2 { font-family: 'Orbitron', monospace; font-size: 1rem; color: var(--neon-cyan); margin-bottom: 1rem; }
+.admin-section h3 { font-size: 0.9rem; margin: 1rem 0 0.5rem; }
+
+.contracts-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.contract-item { display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px; }
+.contract-item span:first-child { color: var(--text-secondary); }
+.contract-item span:last-child { font-family: monospace; font-size: 0.75rem; color: var(--neon-green); }
+
+.add-contract { display: flex; gap: 0.5rem; }
+.add-contract input { flex: 1; font-family: monospace; }
+.add-contract button { padding: 0.6rem 1.5rem; background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)); border: none; border-radius: 6px; color: white; font-family: 'Orbitron', monospace; }
+
+.no-data { color: var(--text-secondary); text-align: center; padding: 1rem; }
+
+.tracked-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.tracked-item { display: flex; gap: 1rem; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px; }
+.tracked-item span:first-child { color: var(--text-secondary); min-width: 30px; }
+.tracked-item span:last-child { font-family: monospace; font-size: 0.75rem; }

@@ -1,0 +1,121 @@
+.inventory { animation: fadeIn 0.3s ease; }
+.inventory h1 { font-family: 'Orbitron', monospace; font-size: 1.8rem; margin-bottom: 2rem; }
+
+.empty-state { text-align: center; padding: 4rem; color: var(--text-secondary); }
+.empty-state .empty-icon { font-size: 4rem; margin-bottom: 1rem; }
+
+.inv-section { margin-bottom: 3rem; }
+.inv-section h2 { font-family: 'Orbitron', monospace; font-size: 1.2rem; color: var(--neon-cyan); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--card-border); }
+
+.inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+
+.inv-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; }
+
+.inv-image { 
+  position: relative; 
+  aspect-ratio: 1; 
+  background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.inv-image img { width: 60%; height: 60%; object-fit: contain; }
+
+.tier-badge { position: absolute; top: 0.5rem; right: 0.5rem; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.6rem; }
+.balance-badge { position: absolute; bottom: 0.5rem; left: 0.5rem; background: rgba(0,0,0,0.8); color: var(--neon-green); padding: 0.3rem 0.6rem; border-radius: 6px; font-family: 'Orbitron', monospace; }
+
+.inv-details { padding: 0.75rem; }
+.inv-details h3 { font-family: 'Orbitron', monospace; font-size: 0.85rem; margin-bottom: 0.5rem; }
+
+.list-btn { width: 100%; padding: 0.6rem; border: none; border-radius: 6px; font-family: 'Orbitron', monospace; font-size: 0.75rem; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green)); color: #000; }
+
+.listings-table { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; }
+
+.table-row { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--card-border); }
+.table-row:last-child { border-bottom: none; }
+.table-row img { width: 40px; height: 40px; border-radius: 6px; object-fit: contain; background: rgba(0,0,0,0.3); padding: 4px; }
+.table-row span { flex: 1; }
+.table-row .price { color: var(--neon-pink); font-family: 'Orbitron', monospace; }
+.table-row button { padding: 0.4rem 0.8rem; border: 1px solid var(--error); border-radius: 4px; background: transparent; color: var(--error); font-size: 0.7rem; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.modal-content { background: var(--card-bg); border: 1px solid var(--neon-purple); border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 400px; }
+.modal-content h2 { font-family: 'Orbitron', monospace; font-size: 1.2rem; margin-bottom: 1rem; }
+
+.modal-item { display: flex; gap: 1rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 1rem; }
+.modal-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: contain; background: rgba(0,0,0,0.3); padding: 6px; }
+.modal-item h3 { font-family: 'Orbitron', monospace; font-size: 0.9rem; }
+.modal-item p { font-size: 0.8rem; color: var(--neon-cyan); }
+
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
+.form-group input, .form-group select { width: 100%; padding: 0.6rem; }
+
+.modal-actions { display: flex; gap: 0.75rem; }
+.modal-actions button { flex: 1; padding: 0.8rem; border-radius: 8px; font-family: 'Orbitron', monospace; }
+.modal-actions .cancel-btn { background: transparent; border: 1px solid var(--card-border); color: var(--text-secondary); }
+.modal-actions .confirm-btn { background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green)); border: none; color: #000; }
+
+/* Edit functionality styles */
+.table-row .listing-name { flex: 2; }
+.table-row .listing-amount { flex: 0.5; color: var(--neon-cyan); }
+.table-row .listing-price { flex: 1; color: var(--neon-pink); font-family: 'Orbitron', monospace; }
+.table-row .listing-deadline { flex: 1; color: var(--text-secondary); font-size: 0.8rem; }
+.table-row .listing-actions { flex: 1; display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+.table-row .edit-btn { 
+  padding: 0.4rem 0.8rem; 
+  border: 1px solid var(--neon-cyan); 
+  border-radius: 4px; 
+  background: transparent; 
+  color: var(--neon-cyan); 
+  font-size: 0.7rem; 
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.table-row .edit-btn:hover { background: var(--neon-cyan); color: #000; }
+
+.table-row .cancel-btn { 
+  padding: 0.4rem 0.8rem; 
+  border: 1px solid var(--error); 
+  border-radius: 4px; 
+  background: transparent; 
+  color: var(--error); 
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.table-row .cancel-btn:hover { background: var(--error); color: #fff; }
+
+.form-hint { display: block; font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.3rem; }
+
+.current-info { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+.edit-summary { 
+  background: rgba(0, 212, 255, 0.1); 
+  border: 1px solid var(--neon-cyan); 
+  border-radius: 8px; 
+  padding: 0.75rem; 
+  margin-bottom: 1rem; 
+}
+.edit-summary h4 { 
+  font-size: 0.8rem; 
+  color: var(--neon-cyan); 
+  margin-bottom: 0.5rem; 
+}
+.edit-summary ul { 
+  list-style: none; 
+  padding: 0; 
+  margin: 0; 
+}
+.edit-summary li { 
+  font-size: 0.75rem; 
+  color: var(--text-primary); 
+  padding: 0.2rem 0; 
+}
+.edit-summary li::before { 
+  content: "→ "; 
+  color: var(--neon-green); 
+}

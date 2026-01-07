@@ -1,0 +1,38 @@
+.navbar {
+  display: flex;
+  gap: 0;
+  background: #1a1a2e;
+  padding: 0;
+  border-bottom: 1px solid #333;
+}
+
+.navbar a {
+  padding: 1rem 1.5rem;
+  color: #888;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.navbar a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.navbar a.active {
+  color: #00d4ff;
+  border-bottom: 2px solid #00d4ff;
+  background: rgba(0, 212, 255, 0.1);
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    flex-wrap: wrap;
+  }
+  
+  .navbar a {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+}

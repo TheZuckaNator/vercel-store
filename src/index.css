@@ -1,0 +1,65 @@
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --card-bg: rgba(20, 20, 30, 0.9);
+  --card-border: rgba(100, 100, 150, 0.3);
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --neon-purple: #bf00ff;
+  --neon-pink: #ff0080;
+  --neon-cyan: #00ffff;
+  --neon-green: #00ff88;
+  --error: #ff4444;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(ellipse at top, rgba(191, 0, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(0, 255, 255, 0.1) 0%, transparent 50%);
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  color: var(--text-primary);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
