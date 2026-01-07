@@ -54,18 +54,83 @@ export const TIER_CONFIG = {
 };
 
 export const TOKEN_METADATA = {
-  1: { name: "Plasma Rifle X-7", description: "High-powered plasma weapon", image: "https://img.icons8.com/color/200/rifle.png", rarity: "Common" },
-  2: { name: "Neon Katana", description: "Energy-infused blade", image: "https://img.icons8.com/color/200/sword.png", rarity: "Uncommon" },
-  3: { name: "Thunder Cannon", description: "Devastating lightning weapon", image: "https://img.icons8.com/color/200/cannon.png", rarity: "Rare" },
-  4: { name: "Nano Shield MK-II", description: "Regenerating nanite shield", image: "https://img.icons8.com/color/200/shield.png", rarity: "Common" },
-  5: { name: "Cyber Helmet Pro", description: "Advanced HUD helmet", image: "https://img.icons8.com/color/200/helmet.png", rarity: "Uncommon" },
-  6: { name: "Stealth Suit Alpha", description: "Optical camouflage suit", image: "https://img.icons8.com/color/200/business-suit.png", rarity: "Rare" },
-  7: { name: "Mega Health Pack", description: "Restores 100% health", image: "https://img.icons8.com/color/200/heart-health.png", rarity: "Common" },
-  8: { name: "Energy Surge Drink", description: "Doubles ability power", image: "https://img.icons8.com/color/200/energy-drink.png", rarity: "Common" },
-  9: { name: "Speed Boost Serum", description: "50% movement speed", image: "https://img.icons8.com/color/200/flash-on.png", rarity: "Common" },
-  10: { name: "Quantum Blade", description: "Phase-shifting weapon", image: "https://img.icons8.com/color/200/laser-beam.png", rarity: "Epic" },
-  11: { name: "Void Armor Set", description: "Void dimension armor", image: "https://img.icons8.com/color/200/iron-man.png", rarity: "Epic" },
-  12: { name: "Infinity Gauntlet", description: "Legendary artifact", image: "https://img.icons8.com/color/200/infinity.png", rarity: "Legendary" }
+  // Weapons (Token IDs 1-3)
+  1: {
+    name: "Plasma Rifle X-7",
+    description: "High-powered plasma weapon with rapid fire capability",
+    image: "https://imgs.search.brave.com/vqHqQ4OX9po1d32V3ArLgQBF_C3IdKkXfOR7yZmyNpQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMud2lraWEubm9j/b29raWUubmV0L3hj/b20vaW1hZ2VzLzcv/NzEvWEVVX0xpZ2h0/X1BsYXNtYV9SaWZs/ZS5wbmcvcmV2aXNp/b24vbGF0ZXN0L3Nj/YWxlLXRvLXdpZHRo/LWRvd24vMjY4P2Ni/PTIwMTMwMzI0MTgz/MTAw",
+    rarity: "Common"
+  },
+  2: {
+    name: "Neon Katana",
+    description: "Energy-infused blade that cuts through any armor",
+    image: "https://img.icons8.com/color/400/sword.png",
+    rarity: "Uncommon"
+  },
+  3: {
+    name: "Thunder Cannon",
+    description: "Devastating area-of-effect lightning weapon",
+    image: "https://img.icons8.com/color/400/cannon.png",
+    rarity: "Rare"
+  },
+  // Armor (Token IDs 4-6)
+  4: {
+    name: "Nano Shield MK-II",
+    description: "Regenerating nanite shield technology",
+    image: "https://img.icons8.com/color/400/shield.png",
+    rarity: "Common"
+  },
+  5: {
+    name: "Cyber Helmet Pro",
+    description: "Advanced HUD with threat detection",
+    image: "https://img.icons8.com/color/400/helmet.png",
+    rarity: "Uncommon"
+  },
+  6: {
+    name: "Stealth Suit Alpha",
+    description: "Optical camouflage with thermal masking",
+    image: "https://imgs.search.brave.com/UYGjhisoBWJMtQkDlOtFw6v3Mzz4mCktWMjR7Z9OPak/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zd2lm/dG1vamkuY29tL2lt/YWdlcy9lbW9qaS9q/b3lwaXhlbHMvOS0w/L25pbmphLnBuZw",
+    rarity: "Rare"
+  },
+  // Consumables (Token IDs 7-9)
+  7: {
+    name: "Mega Health Pack",
+    description: "Instantly restores 100% health",
+    image: "https://img.icons8.com/color/400/heart-health.png",
+    rarity: "Common"
+  },
+  8: {
+    name: "Energy Surge Drink",
+    description: "Doubles ability power for 60 seconds",
+    image: "https://img.icons8.com/color/400/energy-drink.png",
+    rarity: "Common"
+  },
+  9: {
+    name: "Speed Boost Serum",
+    description: "50% movement speed increase for 30 seconds",
+    image: "https://img.icons8.com/color/400/flash-on.png",
+    rarity: "Common"
+  },
+  // Rare (Token IDs 10-11)
+  10: {
+    name: "Quantum Blade",
+    description: "Phase-shifting weapon that bypasses shields",
+    image: "https://img.icons8.com/color/400/laser-beam.png",
+    rarity: "Epic"
+  },
+  11: {
+    name: "Void Armor Set",
+    description: "Complete armor forged in the void dimension",
+    image: "https://img.icons8.com/color/400/iron-man.png",
+    rarity: "Epic"
+  },
+  // Legendary (Token ID 12)
+  12: {
+    name: "Infinity Gauntlet",
+    description: "Legendary artifact of unlimited power",
+    image: "https://img.icons8.com/color/400/infinity.png",
+    rarity: "Legendary"
+  }
 };
 
 export const getTokenName = (tokenId) => TOKEN_METADATA[tokenId]?.name || `Token #${tokenId}`;
