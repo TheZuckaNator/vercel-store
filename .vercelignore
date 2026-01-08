@@ -1,0 +1,4 @@
+test/
+hardhat.config.cjs
+contracts/
+scripts/
