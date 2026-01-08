@@ -136,6 +136,10 @@ function StudioChainPage({
   }
 
   const myListings = listings.filter(l => l.seller?.toLowerCase() === userAddress?.toLowerCase())
+  const otherListings = listings.filter(l => l.seller?.toLowerCase() !== userAddress?.toLowerCase())
+
+  // Get all token IDs user owns
+  const ownedTokens = Object.entries(balances).filter(([_, bal]) => bal > 0)
 
   return (
     <div className="studiochain-page">
@@ -153,7 +157,13 @@ function StudioChainPage({
           className={subTab === 'secondary' ? 'active' : ''} 
           onClick={() => setSubTab('secondary')}
         >
-          Secondary Market
+          Marketplace
+        </button>
+        <button 
+          className={subTab === 'inventory' ? 'active' : ''} 
+          onClick={() => setSubTab('inventory')}
+        >
+          My Inventory
         </button>
       </div>
 
@@ -214,13 +224,12 @@ function StudioChainPage({
         <div className="secondary-section">
           <div className="marketplace-listings">
             <h3>Listed for Sale</h3>
-            {listings.length === 0 ? (
-              <p className="no-items">No listings yet</p>
+            {otherListings.length === 0 ? (
+              <p className="no-items">No listings from other users</p>
             ) : (
               <div className="listings-grid">
-                {listings.map(listing => {
+                {otherListings.map(listing => {
                   const meta = TOKEN_METADATA[listing.tokenId] || { name: `Token #${listing.tokenId}` }
-                  const isOwn = listing.seller?.toLowerCase() === userAddress?.toLowerCase()
                   
                   return (
                     <div key={listing.id} className="listing-card">
@@ -230,14 +239,7 @@ function StudioChainPage({
                       <p className="deadline">{formatDeadline(listing.deadline)}</p>
                       <p className="seller">Seller: {listing.seller?.slice(0, 6)}...{listing.seller?.slice(-4)}</p>
                       {userAddress && (
-                        isOwn ? (
-                          <div className="listing-actions">
-                            <button className="edit-btn" onClick={() => openEditModal(listing)}>Edit</button>
-                            <button className="cancel-btn" onClick={() => onCancelListing(listing)}>Cancel</button>
-                          </div>
-                        ) : (
-                          <button onClick={() => onBuySecondary(listing)}>Buy</button>
-                        )
+                        <button onClick={() => onBuySecondary(listing)}>Buy</button>
                       )}
                     </div>
                   )
@@ -245,74 +247,125 @@ function StudioChainPage({
               </div>
             )}
           </div>
+        </div>
+      )}
 
-          {userAddress && (
-            <div className="create-listing">
-              <h3>Create Listing</h3>
-              <p className="your-nfts">Your NFTs:</p>
-              <div className="balance-list">
-                {Object.entries(balances).map(([tokenId, bal]) => {
-                  if (bal <= 0) return null
-                  const meta = TOKEN_METADATA[tokenId] || { name: `Token #${tokenId}` }
-                  return (
-                    <span key={tokenId} className="balance-item">
-                      {meta.name}: {bal}
-                    </span>
-                  )
-                })}
-              </div>
-              <form onSubmit={handleCreateListing}>
-                <input
-                  type="number"
-                  placeholder="Token ID"
-                  value={listingForm.tokenId}
-                  onChange={(e) => setListingForm(prev => ({ ...prev, tokenId: e.target.value }))}
-                  required
-                />
-                <input
-                  type="number"
-                  placeholder="Amount"
-                  value={listingForm.amount}
-                  onChange={(e) => setListingForm(prev => ({ ...prev, amount: e.target.value }))}
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Price (ETH)"
-                  value={listingForm.price}
-                  onChange={(e) => setListingForm(prev => ({ ...prev, price: e.target.value }))}
-                  required
-                />
-                <select
-                  value={listingForm.days}
-                  onChange={(e) => setListingForm(prev => ({ ...prev, days: e.target.value }))}
-                >
-                  <option value="1">1 day</option>
-                  <option value="7">7 days</option>
-                  <option value="30">30 days</option>
-                </select>
-                <button type="submit">List for Sale</button>
-              </form>
-
-              {myListings.length > 0 && (
-                <div className="my-listings">
-                  <h4>Your Listings</h4>
-                  {myListings.map(listing => {
-                    const meta = TOKEN_METADATA[listing.tokenId] || { name: `Token #${listing.tokenId}` }
-                    return (
-                      <div key={listing.id} className="my-listing-item">
-                        <span>{meta.name} x{listing.amount} @ {listing.price} ETH</span>
-                        <span className="deadline-small">{formatDeadline(listing.deadline)}</span>
-                        <div className="my-listing-actions">
-                          <button className="edit-btn" onClick={() => openEditModal(listing)}>Edit</button>
-                          <button className="cancel-btn" onClick={() => onCancelListing(listing)}>Cancel</button>
+      {subTab === 'inventory' && (
+        <div className="inventory-section">
+          {!userAddress ? (
+            <p className="no-items">Connect wallet to view inventory</p>
+          ) : (
+            <>
+              {/* User's NFTs */}
+              <div className="my-nfts">
+                <h3>My NFTs</h3>
+                {ownedTokens.length === 0 ? (
+                  <p className="no-items">You don't own any NFTs yet</p>
+                ) : (
+                  <div className="items-grid">
+                    {ownedTokens.map(([tokenId, balance]) => {
+                      const meta = TOKEN_METADATA[tokenId] || { name: `Token #${tokenId}`, description: '', image: '' }
+                      return (
+                        <div key={tokenId} className="item-card">
+                          {meta.image && <img src={meta.image} alt={meta.name} className="item-image" />}
+                          <div className="item-info">
+                            <h4>{meta.name}</h4>
+                            <p className="item-desc">{meta.description}</p>
+                            <p className="item-balance">Owned: {balance}</p>
+                          </div>
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Create Listing Form */}
+              <div className="create-listing">
+                <h3>List for Sale</h3>
+                <form onSubmit={handleCreateListing}>
+                  <div className="form-row">
+                    <select
+                      value={listingForm.tokenId}
+                      onChange={(e) => setListingForm(prev => ({ ...prev, tokenId: e.target.value }))}
+                      required
+                    >
+                      <option value="">Select NFT</option>
+                      {ownedTokens.map(([tokenId, balance]) => {
+                        const meta = TOKEN_METADATA[tokenId] || { name: `Token #${tokenId}` }
+                        return (
+                          <option key={tokenId} value={tokenId}>
+                            {meta.name} (Own: {balance})
+                          </option>
+                        )
+                      })}
+                    </select>
+                    <input
+                      type="number"
+                      placeholder="Amount"
+                      min="1"
+                      max={balances[listingForm.tokenId] || 1}
+                      value={listingForm.amount}
+                      onChange={(e) => setListingForm(prev => ({ ...prev, amount: e.target.value }))}
+                      required
+                    />
+                    <input
+                      type="text"
+                      placeholder="Price (ETH)"
+                      value={listingForm.price}
+                      onChange={(e) => setListingForm(prev => ({ ...prev, price: e.target.value }))}
+                      required
+                    />
+                    <select
+                      value={listingForm.days}
+                      onChange={(e) => setListingForm(prev => ({ ...prev, days: e.target.value }))}
+                    >
+                      <option value="1">1 day</option>
+                      <option value="7">7 days</option>
+                      <option value="30">30 days</option>
+                    </select>
+                    <button type="submit">List for Sale</button>
+                  </div>
+                </form>
+              </div>
+
+              {/* My Active Listings */}
+              {myListings.length > 0 && (
+                <div className="my-listings-section">
+                  <h3>My Active Listings</h3>
+                  <table className="listings-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Amount</th>
+                        <th>Price</th>
+                        <th>Expires</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {myListings.map(listing => {
+                        const meta = TOKEN_METADATA[listing.tokenId] || { name: `Token #${listing.tokenId}` }
+                        return (
+                          <tr key={listing.id}>
+                            <td>{meta.name}</td>
+                            <td>{listing.amount}</td>
+                            <td>{listing.price} ETH</td>
+                            <td>{formatDeadline(listing.deadline)}</td>
+                            <td>
+                              <div className="listing-actions">
+                                <button className="edit-btn" onClick={() => openEditModal(listing)}>Edit</button>
+                                <button className="cancel-btn" onClick={() => onCancelListing(listing)}>Cancel</button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       )}
