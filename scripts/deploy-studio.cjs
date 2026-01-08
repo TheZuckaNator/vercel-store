@@ -1,53 +1,25 @@
 const hre = require("hardhat");
 const fs = require("fs");
 
-// ============================================
-// PASTE ADDRESSES HERE TO MINT KARRAT TO
-// ============================================
-const MINT_KARRAT_TO = [
-  "0x934c2B33563604B7C6C6bac86A9f28D31dc33713",
-  "0x3EFD63ACe2b4a41b7ABe64A6e79324946A9c4360",
-  "0xFC49461F8fEbfeEDb41b448Ba2d791f9ac597913",
-  "0x1CD7ce26d878b002B23d20f447E068974dfdfe8e",
-  "0xFafD6c75Afe86bAcaAb7d959aBC1607372b08DC1",
-  "0x1CD7ce26d878b002B23d20f447E068974dfdfe8e"
-
-];
-
-const KARRAT_AMOUNT = "100000"; // Amount per address
-// ============================================
-
 async function main() {
   console.log("\n==============================================");
-  console.log("  MY PET HOOLIGAN - FULL SYSTEM DEPLOYMENT");
+  console.log("  STUDIOCHAIN - FULL SYSTEM DEPLOYMENT");
   console.log("==============================================\n");
 
   const [deployer] = await hre.ethers.getSigners();
   console.log("Deployer:", deployer.address);
   console.log("");
 
-  // 1. Deploy MockKARRAT
-  console.log("1. Deploying MockKARRAT (ERC20)...");
-  const MockKARRAT = await hre.ethers.getContractFactory("MockKARRAT", deployer);
-  const karrat = await MockKARRAT.deploy();
-  await karrat.waitForDeployment();
-  const karratAddress = await karrat.getAddress();
-  console.log("   KARRAT:", karratAddress);
-
-  // Mint to deployer
-  await karrat.mint(deployer.address, hre.ethers.parseEther("1000000"));
-  console.log("   Minted 1,000,000 KARRAT to Deployer");
-
-  // 2. Deploy Verifier
-  console.log("\n2. Deploying Verifier...");
+  // 1. Deploy Verifier
+  console.log("\n1. Deploying Verifier...");
   const VerifierFactory = await hre.ethers.getContractFactory("Verifier", deployer);
   const verifier = await VerifierFactory.deploy(deployer.address, deployer.address);
   await verifier.waitForDeployment();
   const verifierAddress = await verifier.getAddress();
   console.log("   Verifier:", verifierAddress);
 
-  // 3. Deploy MPHAssetTracking
-  console.log("\n3. Deploying MPHAssetTracking...");
+  // 2. Deploy MPHAssetTracking
+  console.log("\n2. Deploying MPHAssetTracking...");
   const MPHAssetTracking = await hre.ethers.getContractFactory("MPHAssetTracking", deployer);
   const tracking = await MPHAssetTracking.deploy(
     verifierAddress,
@@ -63,8 +35,8 @@ async function main() {
   await verifier.grantRole(VERIFIER_ROLE, trackingAddress);
   console.log("   Granted VERIFIER_ROLE to tracking");
 
-  // 4. Deploy TieredGameInventory1155
-  console.log("\n4. Deploying TieredGameInventory1155...");
+  // 3. Deploy TieredGameInventoryStudioChain1155
+  console.log("\n3. Deploying TieredGameInventoryStudioChain1155...");
   
   const config = {
     royaltyPercentage: 250,
@@ -76,7 +48,7 @@ async function main() {
     operator: deployer.address,
     pool: deployer.address,
     verifierAddress: verifierAddress,
-    karratCoin: karratAddress
+    assetTrackingAddress: trackingAddress  // <-- THIS WAS MISSING
   };
   
   const deploymentTiers = [
@@ -86,9 +58,9 @@ async function main() {
       initialSupplies: [100, 100, 100],
       maxAmountsPerUser: [5, 5, 5],
       prices: [
-        hre.ethers.parseEther("10"),
-        hre.ethers.parseEther("15"),
-        hre.ethers.parseEther("20")
+        hre.ethers.parseEther("0.01"),
+        hre.ethers.parseEther("0.015"),
+        hre.ethers.parseEther("0.02")
       ]
     },
     {
@@ -97,9 +69,9 @@ async function main() {
       initialSupplies: [50, 50, 50],
       maxAmountsPerUser: [3, 3, 3],
       prices: [
-        hre.ethers.parseEther("20"),
-        hre.ethers.parseEther("25"),
-        hre.ethers.parseEther("30")
+        hre.ethers.parseEther("0.02"),
+        hre.ethers.parseEther("0.025"),
+        hre.ethers.parseEther("0.03")
       ]
     },
     {
@@ -108,9 +80,9 @@ async function main() {
       initialSupplies: [500, 500, 500],
       maxAmountsPerUser: [20, 20, 20],
       prices: [
-        hre.ethers.parseEther("5"),
-        hre.ethers.parseEther("5"),
-        hre.ethers.parseEther("5")
+        hre.ethers.parseEther("0.005"),
+        hre.ethers.parseEther("0.005"),
+        hre.ethers.parseEther("0.005")
       ]
     },
     {
@@ -119,8 +91,8 @@ async function main() {
       initialSupplies: [25, 25],
       maxAmountsPerUser: [2, 2],
       prices: [
-        hre.ethers.parseEther("50"),
-        hre.ethers.parseEther("75")
+        hre.ethers.parseEther("0.05"),
+        hre.ethers.parseEther("0.075")
       ]
     },
     {
@@ -128,20 +100,16 @@ async function main() {
       tierURI: "https://api.mypethooligan.com/legendary/",
       initialSupplies: [10],
       maxAmountsPerUser: [1],
-      prices: [hre.ethers.parseEther("100")]
+      prices: [hre.ethers.parseEther("0.1")]
     }
   ];
 
-  const TieredGameInventory = await hre.ethers.getContractFactory("TieredGameInventory1155", deployer);
+  const TieredGameInventory = await hre.ethers.getContractFactory("TieredGameInventoryStudioChain1155", deployer);
   const nft = await TieredGameInventory.deploy(config, addresses, deploymentTiers);
   await nft.waitForDeployment();
   const nftAddress = await nft.getAddress();
   console.log("   NFT Contract:", nftAddress);
 
-  // Link NFT to tracking
-  await nft.setMPHAssetTracking(trackingAddress);
-  console.log("   Set tracking on NFT");
-  
   // Add NFT to tracking
   await tracking.addNewContract(nftAddress);
   console.log("   Added NFT to tracking");
@@ -152,14 +120,13 @@ async function main() {
     console.log(`   ${tier.name}: Token IDs [${tokenIds.join(", ")}]`);
   }
 
-  // 5. Deploy MPHGameMarketplace1155
-  console.log("\n5. Deploying MPHGameMarketplace1155...");
-  const Marketplace = await hre.ethers.getContractFactory("MPHGameMarketplace1155", deployer);
+  // 4. Deploy MPHGameMarketplaceNative
+  console.log("\n4. Deploying MPHGameMarketplaceNative...");
+  const Marketplace = await hre.ethers.getContractFactory("MPHGameMarketplaceNative", deployer);
   const marketplace = await Marketplace.deploy(
     verifierAddress,
     deployer.address,
-    deployer.address,
-    karratAddress
+    deployer.address
   );
   await marketplace.waitForDeployment();
   const marketplaceAddress = await marketplace.getAddress();
@@ -168,35 +135,20 @@ async function main() {
   await marketplace.setFeePerMille(25);
   console.log("   Fee set to 2.5%");
 
-  // 6. Approve in verifier
-  console.log("\n6. Setting up verifier approvals...");
+  // 5. Approve in verifier
+  console.log("\n5. Setting up verifier approvals...");
   await verifier.setAllowedAddress(marketplaceAddress, true);
   console.log("   Marketplace approved");
   await verifier.setAllowedAddress(nftAddress, true);
   console.log("   NFT contract approved");
 
-  // 7. Mint KARRAT to test addresses
-  if (MINT_KARRAT_TO.length > 0) {
-    console.log("\n7. Minting KARRAT to test addresses...");
-    for (const addr of MINT_KARRAT_TO) {
-      if (hre.ethers.isAddress(addr)) {
-        const tx = await karrat.mint(addr, hre.ethers.parseEther(KARRAT_AMOUNT));
-        await tx.wait();
-        console.log(`   ✅ ${addr} - ${KARRAT_AMOUNT} KARRAT`);
-      } else {
-        console.log(`   ❌ Invalid: ${addr}`);
-      }
-    }
-  }
-
   // Save to .env
   const envConfig = {
-    VITE_ADMIN_ADDRESS: deployer.address,
-    VITE_TRACKING_CONTRACT: trackingAddress,
-    VITE_MARKETPLACE_CONTRACT: marketplaceAddress,
-    VITE_NFT_CONTRACT: nftAddress,
-    VITE_KARRAT_CONTRACT: karratAddress,
-    VITE_VERIFIER_CONTRACT: verifierAddress
+    VITE_STUDIOCHAIN_ADMIN_ADDRESS: deployer.address,
+    VITE_STUDIOCHAIN_TRACKING_CONTRACT: trackingAddress,
+    VITE_STUDIOCHAIN_MARKETPLACE_CONTRACT: marketplaceAddress,
+    VITE_STUDIOCHAIN_NFT_CONTRACT: nftAddress,
+    VITE_STUDIOCHAIN_VERIFIER_CONTRACT: verifierAddress
   };
 
   // Preserve existing env vars
@@ -218,7 +170,7 @@ async function main() {
   console.log("\n" + "=".repeat(50));
   console.log("DEPLOYMENT COMPLETE!");
   console.log("=".repeat(50));
-
+  
   console.log("\nContract Addresses:");
   console.log("-".repeat(50));
   Object.entries(envConfig).forEach(([key, value]) => {

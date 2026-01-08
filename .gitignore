@@ -7,3 +7,4 @@ artifacts
 typechain-types
 *.log
 .DS_Store
+coverage

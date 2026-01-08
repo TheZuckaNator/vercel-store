@@ -7,11 +7,24 @@
     "build": "vite build",
     "preview": "vite preview",
     "node": "hardhat node",
-    "compile": "hardhat compile",
-    "deploy": "hardhat run scripts/deploy.cjs",
+    "compile": "hardhat compile --config hardhat.config.cjs",
+    "test": "hardhat test --config hardhat.config.cjs",
+    "test:studio": "hardhat test test/MPHGameMarketplaceNative.test.cjs --config hardhat.config.cjs",
+    "test:eth": "hardhat test test/MPHGameMarketplace1155.test.cjs --config hardhat.config.cjs",
+    "coverage": "npx hardhat coverage --config hardhat.config.cjs",
+    "deploy": "hardhat run scripts/deploy.cjs --config hardhat.config.cjs",
+    "deploy:sepolia": "hardhat run scripts/deploy.cjs --network sepolia",
+    "deploy:studiochain": "hardhat run scripts/deploy-studio.cjs --network studiochain",
+    "fix-verifier": "hardhat run scripts/fix-verifier.cjs --network localhost",
+    "fix-verifier:sepolia": "hardhat run scripts/fix-verifier.cjs --network sepolia",
+    "mint-karrat": "hardhat run scripts/mint-karrat.cjs --network localhost",
+    "mint-karrat:sepolia": "hardhat run scripts/mint-karrat.cjs --network sepolia",
+    "mint-to": "hardhat run scripts/mint-to-address.cjs --network localhost",
+    "mint-to:sepolia": "hardhat run scripts/mint-to-address.cjs --network sepolia",
     "server": "json-server --watch db.json --port 3001"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
     "dotenv": "^16.3.1",
     "ethers": "^6.9.0",
     "react": "^18.2.0",
@@ -19,10 +32,13 @@
     "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.1.2",
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "@vitejs/plugin-react": "^4.2.1",
     "hardhat": "^2.19.0",
+    "hardhat-gas-reporter": "^2.3.0",
     "json-server": "^0.17.4",
+    "solidity-coverage": "^0.8.17",
     "vite": "^5.0.0"
   }
 }
