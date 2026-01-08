@@ -54,6 +54,22 @@ function App() {
   
   const isAdmin = userAddress?.toLowerCase() === ADMIN_ADDRESS
 
+  // Listen for network changes and reload
+  useEffect(() => {
+    if (!window.ethereum) return
+
+    const handleChainChanged = (chainId) => {
+      console.log('Network changed to:', chainId)
+      window.location.reload()
+    }
+
+    window.ethereum.on('chainChanged', handleChainChanged)
+
+    return () => {
+      window.ethereum.removeListener('chainChanged', handleChainChanged)
+    }
+  }, [])
+
   // Load listings from storage
   useEffect(() => {
     const loadListings = async () => {
@@ -129,22 +145,57 @@ function App() {
     init()
   }, [contractAddresses, studioChainAddresses])
 
-  // Connect wallet - force switch to Sepolia
-  const connectWallet = async () => {
-    if (!window.ethereum) {
-      showToast('Please install MetaMask', 'error')
-      return
-    }
-    
+  // Switch to StudioChain network
+  const switchToStudioChain = async () => {
+    if (!window.ethereum) return false
+
     try {
-      // Force switch to Sepolia
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0xaa36a7' }]
-        })
-      } catch (switchError) {
-        if (switchError.code === 4902) {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x268' }]
+      })
+      return true
+    } catch (switchError) {
+      if (switchError.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x268',
+              chainName: 'StudioChain Testnet',
+              nativeCurrency: {
+                name: 'ETH',
+                symbol: 'ETH',
+                decimals: 18
+              },
+              rpcUrls: ['https://studio-chain.rpc.caldera.xyz/http'],
+              blockExplorerUrls: ['https://studio-chain.explorer.caldera.xyz']
+            }]
+          })
+          return true
+        } catch (addError) {
+          console.error('Failed to add StudioChain:', addError)
+          return false
+        }
+      }
+      console.error('Failed to switch to StudioChain:', switchError)
+      return false
+    }
+  }
+
+  // Switch to Sepolia network
+  const switchToSepolia = async () => {
+    if (!window.ethereum) return false
+
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0xaa36a7' }]
+      })
+      return true
+    } catch (switchError) {
+      if (switchError.code === 4902) {
+        try {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [{
@@ -155,8 +206,26 @@ function App() {
               blockExplorerUrls: ['https://sepolia.etherscan.io']
             }]
           })
+          return true
+        } catch (addError) {
+          console.error('Failed to add Sepolia:', addError)
+          return false
         }
       }
+      console.error('Failed to switch to Sepolia:', switchError)
+      return false
+    }
+  }
+
+  // Connect wallet
+  const connectWallet = async () => {
+    if (!window.ethereum) {
+      showToast('Please install MetaMask', 'error')
+      return
+    }
+    
+    try {
+      await switchToSepolia()
 
       const web3Provider = new ethers.BrowserProvider(window.ethereum)
       await web3Provider.send("eth_requestAccounts", [])
@@ -211,11 +280,12 @@ function App() {
           }
         }
 
-        // Init StudioChain contracts
-        if (studioChainAddresses.nft) {
-          const scNft = new ethers.Contract(studioChainAddresses.nft, STUDIOCHAIN_NFT_ABI, signer)
+        // Init StudioChain contracts with dedicated provider
+        if (studioChainAddresses.nft && studioChainAddresses.rpcUrl) {
+          const scProvider = new ethers.JsonRpcProvider(studioChainAddresses.rpcUrl)
+          const scNft = new ethers.Contract(studioChainAddresses.nft, STUDIOCHAIN_NFT_ABI, scProvider)
           const scMarketplace = studioChainAddresses.marketplace
-            ? new ethers.Contract(studioChainAddresses.marketplace, STUDIOCHAIN_MARKETPLACE_ABI, signer)
+            ? new ethers.Contract(studioChainAddresses.marketplace, STUDIOCHAIN_MARKETPLACE_ABI, scProvider)
             : null
           setStudioChainContracts({ nft: scNft, marketplace: scMarketplace })
           
@@ -318,52 +388,25 @@ function App() {
     }
   }
 
-  // Add near the top with other helper functions
-const switchToStudioChain = async () => {
-  if (!window.ethereum) return false
-
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x268' }] // 616 in hex
-      })
-      return true
-    } catch (switchError) {
-      // Chain not added, add it
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x268',
-              chainName: 'StudioChain Testnet',
-              nativeCurrency: {
-                name: 'ETH',
-                symbol: 'ETH',
-                decimals: 18
-              },
-              rpcUrls: ['https://studio-chain.rpc.caldera.xyz/http'],
-              blockExplorerUrls: ['https://studio-chain.explorer.caldera.xyz']
-            }]
-          })
-          return true
-        } catch (addError) {
-          console.error('Failed to add StudioChain:', addError)
-          return false
-        }
-      }
-      console.error('Failed to switch to StudioChain:', switchError)
-      return false
-    }
-}
-
   // Buy from StudioChain primary (native ETH)
   const buyStudioChain = async (tierName, tokenIds, amounts) => {
-    if (!studioChainContracts.nft) return
+    const switched = await switchToStudioChain()
+    if (!switched) {
+      showToast('Please switch to StudioChain network', 'error')
+      return
+    }
+
+    // Reinitialize signer for StudioChain
+    const web3Provider = new ethers.BrowserProvider(window.ethereum)
+    const web3Signer = await web3Provider.getSigner()
+    
+    if (!studioChainAddresses.nft) return
     
     setTxModal({ show: true, status: 'pending', message: 'Purchasing with ETH...' })
     
     try {
+      const scNft = new ethers.Contract(studioChainAddresses.nft, STUDIOCHAIN_NFT_ABI, web3Signer)
+      
       const tier = studioChainTiers.find(t => t.name === tierName)
       let totalPrice = BigInt(0)
       for (let i = 0; i < tokenIds.length; i++) {
@@ -371,12 +414,15 @@ const switchToStudioChain = async () => {
         totalPrice += BigInt(tier.prices[idx]) * BigInt(amounts[i])
       }
       
-      const tx = await studioChainContracts.nft.buyNFT(tierName, tokenIds, amounts, { value: totalPrice })
+      const tx = await scNft.buyNFT(tierName, tokenIds, amounts, { value: totalPrice })
       await tx.wait()
       
       setTxModal({ show: true, status: 'success', message: 'Purchase complete!' })
       
-      const scTiers = await loadTiers(studioChainContracts.nft)
+      // Reload tiers with RPC provider
+      const scProvider = new ethers.JsonRpcProvider(studioChainAddresses.rpcUrl)
+      const scNftRead = new ethers.Contract(studioChainAddresses.nft, STUDIOCHAIN_NFT_ABI, scProvider)
+      const scTiers = await loadTiers(scNftRead)
       setStudioChainTiers(scTiers)
       await loadStudioChainBalances()
       
@@ -454,11 +500,19 @@ const switchToStudioChain = async () => {
       showToast('Please switch to StudioChain network', 'error')
       return
     }
-    if (!studioChainContracts.marketplace || !signer) return
+
+    // Reinitialize signer for StudioChain
+    const web3Provider = new ethers.BrowserProvider(window.ethereum)
+    const web3Signer = await web3Provider.getSigner()
+    const address = await web3Signer.getAddress()
+    
+    if (!studioChainAddresses.marketplace) return
     
     try {
-      const nonce = await studioChainContracts.marketplace.nonces(studioChainAddresses.nft, tokenId, userAddress)
-      const chainId = (await provider.getNetwork()).chainId
+      const scMarketplace = new ethers.Contract(studioChainAddresses.marketplace, STUDIOCHAIN_MARKETPLACE_ABI, web3Signer)
+      
+      const nonce = await scMarketplace.nonces(studioChainAddresses.nft, tokenId, address)
+      const chainId = (await web3Provider.getNetwork()).chainId
       
       const domain = {
         ...STUDIOCHAIN_EIP712_DOMAIN,
@@ -469,7 +523,7 @@ const switchToStudioChain = async () => {
       const priceWei = ethers.parseEther(pricePerItem.toString())
       
       const message = {
-        seller: userAddress,
+        seller: address,
         nftContract: studioChainAddresses.nft,
         tokenId: BigInt(tokenId),
         amount: BigInt(amount),
@@ -480,10 +534,10 @@ const switchToStudioChain = async () => {
       
       setTxModal({ show: true, status: 'pending', message: 'Sign the listing...' })
       
-      const signature = await signer.signTypedData(domain, APPROVAL_TYPES, message)
+      const signature = await web3Signer.signTypedData(domain, APPROVAL_TYPES, message)
       
       const listing = {
-        seller: userAddress,
+        seller: address,
         nftContract: studioChainAddresses.nft,
         tokenId,
         amount,
@@ -564,16 +618,23 @@ const switchToStudioChain = async () => {
       showToast('Please switch to StudioChain network', 'error')
       return
     }
-    if (!studioChainContracts.marketplace) return
+
+    // Reinitialize signer for StudioChain
+    const web3Provider = new ethers.BrowserProvider(window.ethereum)
+    const web3Signer = await web3Provider.getSigner()
+    
+    if (!studioChainAddresses.marketplace) return
     
     setTxModal({ show: true, status: 'pending', message: 'Purchasing with ETH...' })
     
     try {
+      const scMarketplace = new ethers.Contract(studioChainAddresses.marketplace, STUDIOCHAIN_MARKETPLACE_ABI, web3Signer)
+      
       const totalPrice = BigInt(listing.priceWei) * BigInt(listing.amount)
       const fee = (totalPrice * 25n) / 1000n
       const totalNeeded = totalPrice + fee
       
-      const tx = await studioChainContracts.marketplace.buyNFT(
+      const tx = await scMarketplace.buyNFT(
         listing.nftContract,
         listing.tokenId,
         listing.amount,
@@ -649,12 +710,19 @@ const switchToStudioChain = async () => {
       showToast('Please switch to StudioChain network', 'error')
       return
     }
-    if (!studioChainContracts.marketplace) return
+
+    // Reinitialize signer for StudioChain
+    const web3Provider = new ethers.BrowserProvider(window.ethereum)
+    const web3Signer = await web3Provider.getSigner()
+    
+    if (!studioChainAddresses.marketplace) return
     
     setTxModal({ show: true, status: 'pending', message: 'Cancelling...' })
     
     try {
-      const tx = await studioChainContracts.marketplace.delistToken(listing.nftContract, listing.tokenId)
+      const scMarketplace = new ethers.Contract(studioChainAddresses.marketplace, STUDIOCHAIN_MARKETPLACE_ABI, web3Signer)
+      
+      const tx = await scMarketplace.delistToken(listing.nftContract, listing.tokenId)
       await tx.wait()
       
       await removeStudioChainListing(listing.id)
