@@ -11,6 +11,7 @@ function StudioChainPage({
   onCreateListing,
   onUpdateListing,
   onCancelListing,
+  onRefreshBalances,
   userAddress 
 }) {
   const [subTab, setSubTab] = useState('primary')
@@ -21,19 +22,24 @@ function StudioChainPage({
   const [editAmount, setEditAmount] = useState('')
   const [editDays, setEditDays] = useState('')
 
+  // Debug logging
+  useEffect(() => {
+    console.log('StudioChain balances:', balances)
+    console.log('StudioChain tiers:', tiers)
+  }, [balances, tiers])
+
   // Check network on page load - prompt to switch to StudioChain
   useEffect(() => {
     const checkNetwork = async () => {
       if (window.ethereum && userAddress) {
         const chainId = await window.ethereum.request({ method: 'eth_chainId' })
-        if (chainId !== '0x268') { // 616 in hex
+        if (chainId !== '0x268') {
           try {
             await window.ethereum.request({
               method: 'wallet_switchEthereumChain',
               params: [{ chainId: '0x268' }]
             })
           } catch (switchError) {
-            // Chain not added, add it
             if (switchError.code === 4902) {
               try {
                 await window.ethereum.request({
@@ -62,6 +68,14 @@ function StudioChainPage({
     }
     checkNetwork()
   }, [userAddress])
+
+  // Handle tab change and refresh balances
+  const handleTabChange = (tab) => {
+    setSubTab(tab)
+    if (tab === 'inventory' && onRefreshBalances) {
+      onRefreshBalances()
+    }
+  }
 
   const handleQuantityChange = (tokenId, value) => {
     setQuantities(prev => ({ ...prev, [tokenId]: Math.max(0, parseInt(value) || 0) }))
@@ -137,8 +151,6 @@ function StudioChainPage({
 
   const myListings = listings.filter(l => l.seller?.toLowerCase() === userAddress?.toLowerCase())
   const otherListings = listings.filter(l => l.seller?.toLowerCase() !== userAddress?.toLowerCase())
-
-  // Get all token IDs user owns
   const ownedTokens = Object.entries(balances).filter(([_, bal]) => bal > 0)
 
   return (
@@ -149,19 +161,19 @@ function StudioChainPage({
       <div className="sub-tabs">
         <button 
           className={subTab === 'primary' ? 'active' : ''} 
-          onClick={() => setSubTab('primary')}
+          onClick={() => handleTabChange('primary')}
         >
           Primary Sale
         </button>
         <button 
           className={subTab === 'secondary' ? 'active' : ''} 
-          onClick={() => setSubTab('secondary')}
+          onClick={() => handleTabChange('secondary')}
         >
           Marketplace
         </button>
         <button 
           className={subTab === 'inventory' ? 'active' : ''} 
-          onClick={() => setSubTab('inventory')}
+          onClick={() => handleTabChange('inventory')}
         >
           My Inventory
         </button>
@@ -259,8 +271,11 @@ function StudioChainPage({
               {/* User's NFTs */}
               <div className="my-nfts">
                 <h3>My NFTs</h3>
+                <button className="refresh-btn" onClick={onRefreshBalances}>
+                  🔄 Refresh
+                </button>
                 {ownedTokens.length === 0 ? (
-                  <p className="no-items">You don't own any NFTs yet</p>
+                  <p className="no-items">You don't own any NFTs yet. Buy some from Primary Sale!</p>
                 ) : (
                   <div className="items-grid">
                     {ownedTokens.map(([tokenId, balance]) => {
@@ -281,53 +296,55 @@ function StudioChainPage({
               </div>
 
               {/* Create Listing Form */}
-              <div className="create-listing">
-                <h3>List for Sale</h3>
-                <form onSubmit={handleCreateListing}>
-                  <div className="form-row">
-                    <select
-                      value={listingForm.tokenId}
-                      onChange={(e) => setListingForm(prev => ({ ...prev, tokenId: e.target.value }))}
-                      required
-                    >
-                      <option value="">Select NFT</option>
-                      {ownedTokens.map(([tokenId, balance]) => {
-                        const meta = TOKEN_METADATA[tokenId] || { name: `Token #${tokenId}` }
-                        return (
-                          <option key={tokenId} value={tokenId}>
-                            {meta.name} (Own: {balance})
-                          </option>
-                        )
-                      })}
-                    </select>
-                    <input
-                      type="number"
-                      placeholder="Amount"
-                      min="1"
-                      max={balances[listingForm.tokenId] || 1}
-                      value={listingForm.amount}
-                      onChange={(e) => setListingForm(prev => ({ ...prev, amount: e.target.value }))}
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="Price (ETH)"
-                      value={listingForm.price}
-                      onChange={(e) => setListingForm(prev => ({ ...prev, price: e.target.value }))}
-                      required
-                    />
-                    <select
-                      value={listingForm.days}
-                      onChange={(e) => setListingForm(prev => ({ ...prev, days: e.target.value }))}
-                    >
-                      <option value="1">1 day</option>
-                      <option value="7">7 days</option>
-                      <option value="30">30 days</option>
-                    </select>
-                    <button type="submit">List for Sale</button>
-                  </div>
-                </form>
-              </div>
+              {ownedTokens.length > 0 && (
+                <div className="create-listing">
+                  <h3>List for Sale</h3>
+                  <form onSubmit={handleCreateListing}>
+                    <div className="form-row">
+                      <select
+                        value={listingForm.tokenId}
+                        onChange={(e) => setListingForm(prev => ({ ...prev, tokenId: e.target.value }))}
+                        required
+                      >
+                        <option value="">Select NFT</option>
+                        {ownedTokens.map(([tokenId, balance]) => {
+                          const meta = TOKEN_METADATA[tokenId] || { name: `Token #${tokenId}` }
+                          return (
+                            <option key={tokenId} value={tokenId}>
+                              {meta.name} (Own: {balance})
+                            </option>
+                          )
+                        })}
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Amount"
+                        min="1"
+                        max={balances[listingForm.tokenId] || 1}
+                        value={listingForm.amount}
+                        onChange={(e) => setListingForm(prev => ({ ...prev, amount: e.target.value }))}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Price (ETH)"
+                        value={listingForm.price}
+                        onChange={(e) => setListingForm(prev => ({ ...prev, price: e.target.value }))}
+                        required
+                      />
+                      <select
+                        value={listingForm.days}
+                        onChange={(e) => setListingForm(prev => ({ ...prev, days: e.target.value }))}
+                      >
+                        <option value="1">1 day</option>
+                        <option value="7">7 days</option>
+                        <option value="30">30 days</option>
+                      </select>
+                      <button type="submit">List for Sale</button>
+                    </div>
+                  </form>
+                </div>
+              )}
 
               {/* My Active Listings */}
               {myListings.length > 0 && (

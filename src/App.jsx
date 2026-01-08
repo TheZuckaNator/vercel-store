@@ -300,7 +300,7 @@ function App() {
     initContracts()
   }, [signer, contractAddresses, studioChainAddresses, userAddress])
 
-  // Load user balances
+  // Load user balances (Sepolia/KARRAT)
   const loadUserBalances = useCallback(async () => {
     if (!contracts.nft || !userAddress || tiers.length === 0) return
     
@@ -318,27 +318,45 @@ function App() {
     setUserBalances(balances)
   }, [contracts.nft, userAddress, tiers])
 
+  // Load StudioChain balances - always use fresh RPC provider
   const loadStudioChainBalances = useCallback(async () => {
-    if (!studioChainContracts.nft || !userAddress || studioChainTiers.length === 0) return
+    if (!userAddress || studioChainTiers.length === 0 || !studioChainAddresses.nft || !studioChainAddresses.rpcUrl) {
+      console.log('Skipping StudioChain balance load:', { userAddress, tiersLength: studioChainTiers.length, nft: studioChainAddresses.nft })
+      return
+    }
     
-    const balances = {}
-    for (const tier of studioChainTiers) {
-      for (const tokenId of tier.tokenIds) {
-        try {
-          const bal = await studioChainContracts.nft.balanceOf(userAddress, tokenId)
-          balances[tokenId] = Number(bal)
-        } catch {
-          balances[tokenId] = 0
+    try {
+      console.log('Loading StudioChain balances for:', userAddress)
+      const scProvider = new ethers.JsonRpcProvider(studioChainAddresses.rpcUrl)
+      const scNft = new ethers.Contract(studioChainAddresses.nft, STUDIOCHAIN_NFT_ABI, scProvider)
+      
+      const balances = {}
+      for (const tier of studioChainTiers) {
+        for (const tokenId of tier.tokenIds) {
+          try {
+            const bal = await scNft.balanceOf(userAddress, tokenId)
+            balances[tokenId] = Number(bal)
+            console.log(`Token ${tokenId} balance:`, Number(bal))
+          } catch (err) {
+            console.error(`Error loading balance for token ${tokenId}:`, err)
+            balances[tokenId] = 0
+          }
         }
       }
+      console.log('StudioChain balances loaded:', balances)
+      setStudioChainBalances(balances)
+    } catch (err) {
+      console.error('Load StudioChain balances error:', err)
     }
-    setStudioChainBalances(balances)
-  }, [studioChainContracts.nft, userAddress, studioChainTiers])
+  }, [userAddress, studioChainTiers, studioChainAddresses])
 
   useEffect(() => {
     loadUserBalances()
+  }, [loadUserBalances])
+
+  useEffect(() => {
     loadStudioChainBalances()
-  }, [loadUserBalances, loadStudioChainBalances])
+  }, [loadStudioChainBalances])
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type })
@@ -396,7 +414,6 @@ function App() {
       return
     }
 
-    // Reinitialize signer for StudioChain
     const web3Provider = new ethers.BrowserProvider(window.ethereum)
     const web3Signer = await web3Provider.getSigner()
     
@@ -419,11 +436,13 @@ function App() {
       
       setTxModal({ show: true, status: 'success', message: 'Purchase complete!' })
       
-      // Reload tiers with RPC provider
+      // Reload tiers
       const scProvider = new ethers.JsonRpcProvider(studioChainAddresses.rpcUrl)
       const scNftRead = new ethers.Contract(studioChainAddresses.nft, STUDIOCHAIN_NFT_ABI, scProvider)
       const scTiers = await loadTiers(scNftRead)
       setStudioChainTiers(scTiers)
+      
+      // Force refresh balances
       await loadStudioChainBalances()
       
       setTimeout(() => setTxModal({ show: false, status: '', message: '' }), 2000)
@@ -501,7 +520,6 @@ function App() {
       return
     }
 
-    // Reinitialize signer for StudioChain
     const web3Provider = new ethers.BrowserProvider(window.ethereum)
     const web3Signer = await web3Provider.getSigner()
     const address = await web3Signer.getAddress()
@@ -619,7 +637,6 @@ function App() {
       return
     }
 
-    // Reinitialize signer for StudioChain
     const web3Provider = new ethers.BrowserProvider(window.ethereum)
     const web3Signer = await web3Provider.getSigner()
     
@@ -711,7 +728,6 @@ function App() {
       return
     }
 
-    // Reinitialize signer for StudioChain
     const web3Provider = new ethers.BrowserProvider(window.ethereum)
     const web3Signer = await web3Provider.getSigner()
     
@@ -792,6 +808,7 @@ function App() {
               onCreateListing={createStudioChainListing}
               onUpdateListing={updateStudioChainListingHandler}
               onCancelListing={cancelStudioChainListing}
+              onRefreshBalances={loadStudioChainBalances}
               userAddress={userAddress}
             />
           } />
