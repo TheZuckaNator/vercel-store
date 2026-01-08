@@ -36,7 +36,7 @@
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "@vitejs/plugin-react": "^4.2.1",
     "hardhat": "^2.19.0",
-    "hardhat-gas-reporter": "^2.3.0",
+    "hardhat-gas-reporter": "^1.0.10",
     "json-server": "^0.17.4",
     "solidity-coverage": "^0.8.17",
     "vite": "^5.0.0"
