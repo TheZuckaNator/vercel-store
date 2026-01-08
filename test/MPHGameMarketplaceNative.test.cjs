@@ -178,6 +178,170 @@ describe("MPHGameMarketplaceNative", function () {
   });
 
   // ============================================
+  // ADDITIONAL BRANCH COVERAGE TESTS
+  // ============================================
+
+  describe("Branch Coverage", function () {
+    it("Should handle fee = 0 in buyNFT (no fee transfer)", async function () {
+      await marketplace.connect(admin).setFeePerMille(0);
+
+      const tokenId = 1;
+      const amount = 1;
+      const price = ethers.parseEther("0.1");
+      const deadline = (await time.latest()) + 3600;
+
+      const signature = await createSignature(seller, nftAddress, tokenId, amount, price, 0, deadline);
+
+      const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+
+      // This hits `if (fee > 0)` false branch
+      await marketplace.connect(buyer).buyNFT(
+        nftAddress, tokenId, amount, price, deadline, seller.address, signature,
+        { value: price }
+      );
+
+      expect(await ethers.provider.getBalance(feeReceiver.address)).to.equal(feeReceiverBefore);
+    });
+
+    it("Should handle exact payment (no refund)", async function () {
+      const tokenId = 1;
+      const amount = 1;
+      const price = ethers.parseEther("1");
+      const deadline = (await time.latest()) + 3600;
+
+      const signature = await createSignature(seller, nftAddress, tokenId, amount, price, 0, deadline);
+
+      const totalPrice = price;
+      const fee = (totalPrice * 25n) / 1000n;
+      const exactPayment = totalPrice + fee;
+
+      const buyerBalanceBefore = await ethers.provider.getBalance(buyer.address);
+
+      const tx = await marketplace.connect(buyer).buyNFT(
+        nftAddress, tokenId, amount, price, deadline, seller.address, signature,
+        { value: exactPayment }
+      );
+      const receipt = await tx.wait();
+      const gasUsed = receipt.gasUsed * receipt.gasPrice;
+
+      const buyerBalanceAfter = await ethers.provider.getBalance(buyer.address);
+      
+      // Hits `if (msg.value > totalPrice + fee)` false branch - no refund
+      expect(buyerBalanceBefore - buyerBalanceAfter).to.equal(exactPayment + gasUsed);
+    });
+
+    it("Should handle single item in buyMultipleNFTs", async function () {
+      await nft.connect(seller).buyNFT("TestTier", [2], [5]);
+
+      const deadline = (await time.latest()) + 3600;
+      const price = ethers.parseEther("0.1");
+
+      const sig = await createSignature(seller, nftAddress, 1, 1, price, 0, deadline);
+
+      const fee = (price * 25n) / 1000n;
+
+      // n = 1 (minimum valid)
+      await marketplace.connect(buyer).buyMultipleNFTs(
+        [nftAddress],
+        [1],
+        [1],
+        [price],
+        [deadline],
+        [seller.address],
+        [sig],
+        { value: price + fee }
+      );
+
+      expect(await nft.balanceOf(buyer.address, 1)).to.equal(1);
+    });
+
+    it("Should handle totalFees = 0 in buyMultipleNFTs", async function () {
+      await marketplace.connect(admin).setFeePerMille(0);
+      await nft.connect(seller).buyNFT("TestTier", [2], [5]);
+
+      const deadline = (await time.latest()) + 3600;
+      const price1 = ethers.parseEther("0.1");
+      const price2 = ethers.parseEther("0.2");
+
+      const sig1 = await createSignature(seller, nftAddress, 1, 1, price1, 0, deadline);
+      const sig2 = await createSignature(seller, nftAddress, 2, 1, price2, 0, deadline);
+
+      const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+
+      // Hits `if (totalFees > 0)` false branch
+      await marketplace.connect(buyer).buyMultipleNFTs(
+        [nftAddress, nftAddress],
+        [1, 2],
+        [1, 1],
+        [price1, price2],
+        [deadline, deadline],
+        [seller.address, seller.address],
+        [sig1, sig2],
+        { value: price1 + price2 }
+      );
+
+      expect(await ethers.provider.getBalance(feeReceiver.address)).to.equal(feeReceiverBefore);
+    });
+
+    it("Should handle exact payment in buyMultipleNFTs (no refund)", async function () {
+      await nft.connect(seller).buyNFT("TestTier", [2], [5]);
+
+      const deadline = (await time.latest()) + 3600;
+      const price1 = ethers.parseEther("0.1");
+      const price2 = ethers.parseEther("0.2");
+
+      const sig1 = await createSignature(seller, nftAddress, 1, 1, price1, 0, deadline);
+      const sig2 = await createSignature(seller, nftAddress, 2, 1, price2, 0, deadline);
+
+      const total = price1 + price2;
+      const fee = (total * 25n) / 1000n;
+      const exactPayment = total + fee;
+
+      const buyerBalanceBefore = await ethers.provider.getBalance(buyer.address);
+
+      const tx = await marketplace.connect(buyer).buyMultipleNFTs(
+        [nftAddress, nftAddress],
+        [1, 2],
+        [1, 1],
+        [price1, price2],
+        [deadline, deadline],
+        [seller.address, seller.address],
+        [sig1, sig2],
+        { value: exactPayment }
+      );
+      const receipt = await tx.wait();
+      const gasUsed = receipt.gasUsed * receipt.gasPrice;
+
+      const buyerBalanceAfter = await ethers.provider.getBalance(buyer.address);
+
+      // Hits `if (msg.value > totalRequired + totalFees)` false branch
+      expect(buyerBalanceBefore - buyerBalanceAfter).to.equal(exactPayment + gasUsed);
+    });
+
+    it("Should test fee at maximum (1000 = 100%)", async function () {
+      await marketplace.connect(admin).setFeePerMille(1000);
+
+      const gross = ethers.parseEther("100");
+      expect(await marketplace.calculateFee(gross)).to.equal(gross);
+    });
+
+    it("Should test fee at boundary (999)", async function () {
+      await marketplace.connect(admin).setFeePerMille(999);
+
+      const gross = ethers.parseEther("1000");
+      const expected = ethers.parseEther("999");
+      expect(await marketplace.calculateFee(gross)).to.equal(expected);
+    });
+
+    it("Should test setFeePerMille at exact boundary (1000)", async function () {
+      await expect(marketplace.connect(admin).setFeePerMille(1000))
+        .to.emit(marketplace, "FeeChanged")
+        .withArgs(1000);
+
+      expect(await marketplace.feePerMille()).to.equal(1000);
+    });
+  });
+  // ============================================
   // buyNFT TESTS
   // ============================================
 

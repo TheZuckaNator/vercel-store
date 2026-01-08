@@ -318,6 +318,45 @@ function App() {
     }
   }
 
+  // Add near the top with other helper functions
+const switchToStudioChain = async () => {
+  if (!window.ethereum) return false
+
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x268' }] // 616 in hex
+      })
+      return true
+    } catch (switchError) {
+      // Chain not added, add it
+      if (switchError.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x268',
+              chainName: 'StudioChain Testnet',
+              nativeCurrency: {
+                name: 'ETH',
+                symbol: 'ETH',
+                decimals: 18
+              },
+              rpcUrls: ['https://studio-chain.rpc.caldera.xyz/http'],
+              blockExplorerUrls: ['https://studio-chain.explorer.caldera.xyz']
+            }]
+          })
+          return true
+        } catch (addError) {
+          console.error('Failed to add StudioChain:', addError)
+          return false
+        }
+      }
+      console.error('Failed to switch to StudioChain:', switchError)
+      return false
+    }
+}
+
   // Buy from StudioChain primary (native ETH)
   const buyStudioChain = async (tierName, tokenIds, amounts) => {
     if (!studioChainContracts.nft) return
@@ -410,6 +449,11 @@ function App() {
 
   // Create StudioChain listing (native ETH)
   const createStudioChainListing = async (tokenId, amount, pricePerItem, deadline) => {
+    const switched = await switchToStudioChain()
+    if (!switched) {
+      showToast('Please switch to StudioChain network', 'error')
+      return
+    }
     if (!studioChainContracts.marketplace || !signer) return
     
     try {
@@ -515,6 +559,11 @@ function App() {
 
   // Buy from StudioChain marketplace (native ETH)
   const buyFromStudioChainListing = async (listing) => {
+    const switched = await switchToStudioChain()
+    if (!switched) {
+      showToast('Please switch to StudioChain network', 'error')
+      return
+    }
     if (!studioChainContracts.marketplace) return
     
     setTxModal({ show: true, status: 'pending', message: 'Purchasing with ETH...' })
@@ -595,6 +644,11 @@ function App() {
 
   // Cancel StudioChain listing
   const cancelStudioChainListing = async (listing) => {
+    const switched = await switchToStudioChain()
+    if (!switched) {
+      showToast('Please switch to StudioChain network', 'error')
+      return
+    }
     if (!studioChainContracts.marketplace) return
     
     setTxModal({ show: true, status: 'pending', message: 'Cancelling...' })

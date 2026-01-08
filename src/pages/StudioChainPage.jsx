@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TOKEN_METADATA } from '../utils/constants'
 import './StudioChainPage.css'
 
@@ -20,6 +20,48 @@ function StudioChainPage({
   const [editPrice, setEditPrice] = useState('')
   const [editAmount, setEditAmount] = useState('')
   const [editDays, setEditDays] = useState('')
+
+  // Check network on page load - prompt to switch to StudioChain
+  useEffect(() => {
+    const checkNetwork = async () => {
+      if (window.ethereum && userAddress) {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' })
+        if (chainId !== '0x268') { // 616 in hex
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x268' }]
+            })
+          } catch (switchError) {
+            // Chain not added, add it
+            if (switchError.code === 4902) {
+              try {
+                await window.ethereum.request({
+                  method: 'wallet_addEthereumChain',
+                  params: [{
+                    chainId: '0x268',
+                    chainName: 'StudioChain Testnet',
+                    nativeCurrency: {
+                      name: 'ETH',
+                      symbol: 'ETH',
+                      decimals: 18
+                    },
+                    rpcUrls: ['https://studio-chain.rpc.caldera.xyz/http'],
+                    blockExplorerUrls: ['https://studio-chain.explorer.caldera.xyz']
+                  }]
+                })
+              } catch (addError) {
+                console.error('Failed to add StudioChain:', addError)
+              }
+            } else {
+              console.log('Please switch to StudioChain network')
+            }
+          }
+        }
+      }
+    }
+    checkNetwork()
+  }, [userAddress])
 
   const handleQuantityChange = (tokenId, value) => {
     setQuantities(prev => ({ ...prev, [tokenId]: Math.max(0, parseInt(value) || 0) }))
