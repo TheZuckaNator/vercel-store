@@ -1,133 +1,291 @@
+/**
+ * MPH NFT Marketplace - Storage Utility
+ * Uses remote JSON server API with localStorage fallback
+ */
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
 // ============================================
-// CRUD Operations for Listings (localStorage)
+// KARRAT LISTINGS (Main Chain)
 // ============================================
 
-// Main chain listings (KARRAT)
-export function getListings() {
+export const getListings = async () => {
   try {
-    return JSON.parse(localStorage.getItem('mph_listings') || '[]')
-  } catch {
-    return []
+    const res = await fetch(`${API_URL}/listings`)
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return getListingsLocal()
   }
 }
 
-export function addListing(listing) {
-  const listings = getListings()
-  const newListing = { ...listing, id: Date.now(), createdAt: Date.now() }
-  listings.push(newListing)
-  localStorage.setItem('mph_listings', JSON.stringify(listings))
-  return newListing
+export const addListing = async (listing) => {
+  const newListing = {
+    ...listing,
+    id: Date.now(),
+    createdAt: Date.now()
+  }
+  
+  try {
+    const res = await fetch(`${API_URL}/listings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newListing)
+    })
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return addListingLocal(newListing)
+  }
 }
 
-export function updateListing(listingId, updates) {
-  const listings = getListings()
+export const updateListing = async (listingId, updates) => {
+  try {
+    const res = await fetch(`${API_URL}/listings/${listingId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    })
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return updateListingLocal(listingId, updates)
+  }
+}
+
+export const removeListing = async (listingId) => {
+  try {
+    const res = await fetch(`${API_URL}/listings/${listingId}`, {
+      method: 'DELETE'
+    })
+    if (!res.ok) throw new Error('API error')
+    return true
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return removeListingLocal(listingId)
+  }
+}
+
+export const getListingById = async (listingId) => {
+  try {
+    const res = await fetch(`${API_URL}/listings/${listingId}`)
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return getListingByIdLocal(listingId)
+  }
+}
+
+export const getListingsBySeller = async (sellerAddress) => {
+  try {
+    const res = await fetch(`${API_URL}/listings?seller=${sellerAddress.toLowerCase()}`)
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return getListingsBySellerLocal(sellerAddress)
+  }
+}
+
+// ============================================
+// STUDIOCHAIN LISTINGS (Native ETH)
+// ============================================
+
+export const getStudioChainListings = async () => {
+  try {
+    const res = await fetch(`${API_URL}/studiochain_listings`)
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return getStudioChainListingsLocal()
+  }
+}
+
+export const addStudioChainListing = async (listing) => {
+  const newListing = {
+    ...listing,
+    id: Date.now(),
+    createdAt: Date.now()
+  }
+  
+  try {
+    const res = await fetch(`${API_URL}/studiochain_listings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newListing)
+    })
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return addStudioChainListingLocal(newListing)
+  }
+}
+
+export const updateStudioChainListing = async (listingId, updates) => {
+  try {
+    const res = await fetch(`${API_URL}/studiochain_listings/${listingId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    })
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return updateStudioChainListingLocal(listingId, updates)
+  }
+}
+
+export const removeStudioChainListing = async (listingId) => {
+  try {
+    const res = await fetch(`${API_URL}/studiochain_listings/${listingId}`, {
+      method: 'DELETE'
+    })
+    if (!res.ok) throw new Error('API error')
+    return true
+  } catch (err) {
+    console.warn('API unavailable, using localStorage:', err.message)
+    return removeStudioChainListingLocal(listingId)
+  }
+}
+
+// ============================================
+// SIGNATURES & TRANSACTIONS LOGGING
+// ============================================
+
+export const saveSignature = async (sigData) => {
+  try {
+    const res = await fetch(`${API_URL}/signatures`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...sigData, id: Date.now(), timestamp: Date.now() })
+    })
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('Signature logging failed:', err.message)
+    return null
+  }
+}
+
+export const saveTransaction = async (tx) => {
+  try {
+    const res = await fetch(`${API_URL}/transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...tx, id: Date.now(), timestamp: Date.now() })
+    })
+    if (!res.ok) throw new Error('API error')
+    return await res.json()
+  } catch (err) {
+    console.warn('Transaction logging failed:', err.message)
+    return null
+  }
+}
+
+// ============================================
+// LOCAL STORAGE FALLBACK
+// ============================================
+
+const LISTINGS_KEY = 'mph_listings'
+const STUDIOCHAIN_KEY = 'mph_studiochain_listings'
+
+const getListingsLocal = () => {
+  const data = localStorage.getItem(LISTINGS_KEY)
+  return data ? JSON.parse(data) : []
+}
+
+const addListingLocal = (listing) => {
+  const listings = getListingsLocal()
+  listings.push(listing)
+  localStorage.setItem(LISTINGS_KEY, JSON.stringify(listings))
+  return listing
+}
+
+const updateListingLocal = (listingId, updates) => {
+  const listings = getListingsLocal()
   const index = listings.findIndex(l => l.id === listingId)
   if (index !== -1) {
-    listings[index] = { ...listings[index], ...updates, updatedAt: Date.now() }
-    localStorage.setItem('mph_listings', JSON.stringify(listings))
+    listings[index] = { ...listings[index], ...updates }
+    localStorage.setItem(LISTINGS_KEY, JSON.stringify(listings))
     return listings[index]
   }
   return null
 }
 
-export function removeListing(listingId) {
-  const listings = getListings().filter(l => l.id !== listingId)
-  localStorage.setItem('mph_listings', JSON.stringify(listings))
+const removeListingLocal = (listingId) => {
+  const listings = getListingsLocal()
+  const filtered = listings.filter(l => l.id !== listingId)
+  localStorage.setItem(LISTINGS_KEY, JSON.stringify(filtered))
+  return true
 }
 
-export function getListingById(listingId) {
-  const listings = getListings()
+const getListingByIdLocal = (listingId) => {
+  const listings = getListingsLocal()
   return listings.find(l => l.id === listingId) || null
 }
 
-export function getListingsBySeller(sellerAddress) {
-  const listings = getListings()
-  return listings.filter(l => l.seller?.toLowerCase() === sellerAddress?.toLowerCase())
+const getListingsBySellerLocal = (sellerAddress) => {
+  const listings = getListingsLocal()
+  return listings.filter(l => l.seller?.toLowerCase() === sellerAddress.toLowerCase())
 }
 
-// StudioChain listings (native ETH)
-export function getStudioChainListings() {
-  try {
-    return JSON.parse(localStorage.getItem('mph_studiochain_listings') || '[]')
-  } catch {
-    return []
-  }
+const getStudioChainListingsLocal = () => {
+  const data = localStorage.getItem(STUDIOCHAIN_KEY)
+  return data ? JSON.parse(data) : []
 }
 
-export function addStudioChainListing(listing) {
-  const listings = getStudioChainListings()
-  const newListing = { ...listing, id: Date.now(), createdAt: Date.now() }
-  listings.push(newListing)
-  localStorage.setItem('mph_studiochain_listings', JSON.stringify(listings))
-  return newListing
+const addStudioChainListingLocal = (listing) => {
+  const listings = getStudioChainListingsLocal()
+  listings.push(listing)
+  localStorage.setItem(STUDIOCHAIN_KEY, JSON.stringify(listings))
+  return listing
 }
 
-export function updateStudioChainListing(listingId, updates) {
-  const listings = getStudioChainListings()
+const updateStudioChainListingLocal = (listingId, updates) => {
+  const listings = getStudioChainListingsLocal()
   const index = listings.findIndex(l => l.id === listingId)
   if (index !== -1) {
-    listings[index] = { ...listings[index], ...updates, updatedAt: Date.now() }
-    localStorage.setItem('mph_studiochain_listings', JSON.stringify(listings))
+    listings[index] = { ...listings[index], ...updates }
+    localStorage.setItem(STUDIOCHAIN_KEY, JSON.stringify(listings))
     return listings[index]
   }
   return null
 }
 
-export function removeStudioChainListing(listingId) {
-  const listings = getStudioChainListings().filter(l => l.id !== listingId)
-  localStorage.setItem('mph_studiochain_listings', JSON.stringify(listings))
+const removeStudioChainListingLocal = (listingId) => {
+  const listings = getStudioChainListingsLocal()
+  const filtered = listings.filter(l => l.id !== listingId)
+  localStorage.setItem(STUDIOCHAIN_KEY, JSON.stringify(filtered))
+  return true
 }
 
-// Signatures log
-export function saveSignature(sigData) {
-  const sigs = JSON.parse(localStorage.getItem('mph_signatures') || '[]')
-  sigs.unshift({ ...sigData, timestamp: Date.now() })
-  localStorage.setItem('mph_signatures', JSON.stringify(sigs.slice(0, 100)))
-}
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
 
-export function getSignatures() {
-  try {
-    return JSON.parse(localStorage.getItem('mph_signatures') || '[]')
-  } catch {
-    return []
-  }
-}
-
-// Transactions log
-export function saveTransaction(tx) {
-  const txs = JSON.parse(localStorage.getItem('mph_transactions') || '[]')
-  txs.unshift({ ...tx, timestamp: Date.now() })
-  localStorage.setItem('mph_transactions', JSON.stringify(txs.slice(0, 100)))
-}
-
-export function getTransactions() {
-  try {
-    return JSON.parse(localStorage.getItem('mph_transactions') || '[]')
-  } catch {
-    return []
-  }
-}
-
-// Format helpers
-export function formatAddress(addr) {
+export const formatAddress = (addr) => {
   if (!addr) return ''
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
 }
 
-export function formatKarrat(wei) {
-  const num = parseFloat(wei) / 1e18
-  return num.toLocaleString(undefined, { maximumFractionDigits: 2 })
+export const formatKarrat = (wei) => {
+  const karrat = parseFloat(wei) / 1e18
+  return karrat.toLocaleString(undefined, { maximumFractionDigits: 2 })
 }
 
-export function formatETH(wei) {
-  const num = parseFloat(wei) / 1e18
-  return num.toLocaleString(undefined, { maximumFractionDigits: 4 })
+export const formatETH = (wei) => {
+  const eth = parseFloat(wei) / 1e18
+  return eth.toLocaleString(undefined, { maximumFractionDigits: 4 })
 }
 
-// Clear all data (for testing)
-export function clearAllData() {
-  localStorage.removeItem('mph_listings')
-  localStorage.removeItem('mph_studiochain_listings')
-  localStorage.removeItem('mph_signatures')
-  localStorage.removeItem('mph_transactions')
+export const clearAllData = () => {
+  localStorage.removeItem(LISTINGS_KEY)
+  localStorage.removeItem(STUDIOCHAIN_KEY)
 }

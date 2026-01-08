@@ -56,8 +56,13 @@ function App() {
 
   // Load listings from storage
   useEffect(() => {
-    setListings(getListings())
-    setStudioChainListings(getStudioChainListings())
+    const loadListings = async () => {
+      const karratListings = await getListings()
+      const scListings = await getStudioChainListings()
+      setListings(karratListings)
+      setStudioChainListings(scListings)
+    }
+    loadListings()
   }, [])
 
   // Load tiers
@@ -387,8 +392,9 @@ function App() {
         signature
       }
       
-      addListing(listing)
-      setListings(getListings())
+      await addListing(listing)
+      const updatedListings = await getListings()
+      setListings(updatedListings)
       
       saveSignature({ type: 'listing_created', ...listing })
       
@@ -444,8 +450,9 @@ function App() {
         signature
       }
       
-      addStudioChainListing(listing)
-      setStudioChainListings(getStudioChainListings())
+      await addStudioChainListing(listing)
+      const updatedListings = await getStudioChainListings()
+      setStudioChainListings(updatedListings)
       
       setTxModal({ show: true, status: 'success', message: 'Listing created!' })
       setTimeout(() => setTxModal({ show: false, status: '', message: '' }), 2000)
@@ -487,8 +494,9 @@ function App() {
       )
       await tx.wait()
       
-      removeListing(listing.id)
-      setListings(getListings())
+      await removeListing(listing.id)
+      const updatedListings = await getListings()
+      setListings(updatedListings)
       
       setTxModal({ show: true, status: 'success', message: 'Purchase complete!' })
       
@@ -528,8 +536,9 @@ function App() {
       )
       await tx.wait()
       
-      removeStudioChainListing(listing.id)
-      setStudioChainListings(getStudioChainListings())
+      await removeStudioChainListing(listing.id)
+      const updatedListings = await getStudioChainListings()
+      setStudioChainListings(updatedListings)
       
       setTxModal({ show: true, status: 'success', message: 'Purchase complete!' })
       
@@ -554,8 +563,9 @@ function App() {
       const tx = await contracts.marketplace.delistToken(listing.nftContract, listing.tokenId)
       await tx.wait()
       
-      removeListing(listing.id)
-      setListings(getListings())
+      await removeListing(listing.id)
+      const updatedListings = await getListings()
+      setListings(updatedListings)
       
       setTxModal({ show: true, status: 'success', message: 'Cancelled!' })
       setTimeout(() => setTxModal({ show: false, status: '', message: '' }), 2000)
@@ -568,16 +578,18 @@ function App() {
   }
 
   // Update listing (CRUD - UPDATE operation)
-  const updateListingHandler = (listingId, updates) => {
-    updateListing(listingId, updates)
-    setListings(getListings())
+  const updateListingHandler = async (listingId, updates) => {
+    await updateListing(listingId, updates)
+    const updatedListings = await getListings()
+    setListings(updatedListings)
     showToast('Listing updated!', 'success')
   }
 
   // Update StudioChain listing (CRUD - UPDATE operation)
-  const updateStudioChainListingHandler = (listingId, updates) => {
-    updateStudioChainListing(listingId, updates)
-    setStudioChainListings(getStudioChainListings())
+  const updateStudioChainListingHandler = async (listingId, updates) => {
+    await updateStudioChainListing(listingId, updates)
+    const updatedListings = await getStudioChainListings()
+    setStudioChainListings(updatedListings)
     showToast('Listing updated!', 'success')
   }
 
@@ -591,8 +603,9 @@ function App() {
       const tx = await studioChainContracts.marketplace.delistToken(listing.nftContract, listing.tokenId)
       await tx.wait()
       
-      removeStudioChainListing(listing.id)
-      setStudioChainListings(getStudioChainListings())
+      await removeStudioChainListing(listing.id)
+      const updatedListings = await getStudioChainListings()
+      setStudioChainListings(updatedListings)
       
       setTxModal({ show: true, status: 'success', message: 'Cancelled!' })
       setTimeout(() => setTxModal({ show: false, status: '', message: '' }), 2000)
