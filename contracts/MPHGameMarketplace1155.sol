@@ -29,7 +29,7 @@ contract MPHGameMarketplace1155 is IMPHGameMarketplace1155, AccessControl, EIP71
     // ============================================
 
     /// @notice The ERC-20 token used for payments (e.g., KARRAT)
-    IERC20 public paymentToken;
+    IERC20 public immutable paymentToken;
 
     /// @notice The verifier contract that approves NFT collections
     IVerifier public verifier;
