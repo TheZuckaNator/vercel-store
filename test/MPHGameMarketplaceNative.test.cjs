@@ -341,6 +341,7 @@ describe("MPHGameMarketplaceNative", function () {
       expect(await marketplace.feePerMille()).to.equal(1000);
     });
   });
+
   // ============================================
   // buyNFT TESTS
   // ============================================
@@ -848,6 +849,147 @@ describe("MPHGameMarketplaceNative", function () {
   });
 
   // ============================================
+  // RESCUE FUNCTIONS TESTS
+  // ============================================
+
+  describe("Rescue Functions", function () {
+    describe("rescueETH", function () {
+      it("Should allow admin to rescue ETH", async function () {
+        // Send ETH directly to contract
+        await owner.sendTransaction({
+          to: marketplaceAddress,
+          value: ethers.parseEther("1")
+        });
+
+        const adminBalanceBefore = await ethers.provider.getBalance(admin.address);
+
+        await expect(marketplace.connect(admin).rescueETH(admin.address, ethers.parseEther("1")))
+          .to.emit(marketplace, "ETHRescued")
+          .withArgs(admin.address, ethers.parseEther("1"));
+
+        const adminBalanceAfter = await ethers.provider.getBalance(admin.address);
+        // Account for gas costs - balance should have increased
+        expect(adminBalanceAfter).to.be.gt(adminBalanceBefore);
+      });
+
+      it("Should revert if zero address", async function () {
+        await owner.sendTransaction({
+          to: marketplaceAddress,
+          value: ethers.parseEther("1")
+        });
+
+        await expect(
+          marketplace.connect(admin).rescueETH(ethers.ZeroAddress, ethers.parseEther("1"))
+        ).to.be.revertedWithCustomError(marketplace, "ZeroAddress");
+      });
+
+      it("Should revert if amount is zero", async function () {
+        await expect(
+          marketplace.connect(admin).rescueETH(admin.address, 0)
+        ).to.be.revertedWithCustomError(marketplace, "IncorrectInput");
+      });
+
+      it("Should revert if insufficient balance", async function () {
+        await expect(
+          marketplace.connect(admin).rescueETH(admin.address, ethers.parseEther("100"))
+        ).to.be.revertedWithCustomError(marketplace, "InsufficientPayment");
+      });
+
+      it("Should revert if not admin", async function () {
+        await owner.sendTransaction({
+          to: marketplaceAddress,
+          value: ethers.parseEther("1")
+        });
+
+        await expect(
+          marketplace.connect(buyer).rescueETH(buyer.address, ethers.parseEther("1"))
+        ).to.be.reverted;
+      });
+    });
+
+    describe("rescueERC20", function () {
+      it("Should allow admin to rescue ERC20 tokens", async function () {
+        // Send some KARRAT to the marketplace (simulating stuck tokens)
+        await karrat.mint(marketplaceAddress, ethers.parseEther("100"));
+
+        const adminBalanceBefore = await karrat.balanceOf(admin.address);
+
+        await expect(marketplace.connect(admin).rescueERC20(karratAddress, admin.address, ethers.parseEther("100")))
+          .to.emit(marketplace, "ERC20Rescued")
+          .withArgs(karratAddress, admin.address, ethers.parseEther("100"));
+
+        const adminBalanceAfter = await karrat.balanceOf(admin.address);
+        expect(adminBalanceAfter - adminBalanceBefore).to.equal(ethers.parseEther("100"));
+      });
+
+      it("Should revert if token address is zero", async function () {
+        await expect(
+          marketplace.connect(admin).rescueERC20(ethers.ZeroAddress, admin.address, ethers.parseEther("100"))
+        ).to.be.revertedWithCustomError(marketplace, "ZeroAddress");
+      });
+
+      it("Should revert if recipient is zero address", async function () {
+        await expect(
+          marketplace.connect(admin).rescueERC20(karratAddress, ethers.ZeroAddress, ethers.parseEther("100"))
+        ).to.be.revertedWithCustomError(marketplace, "ZeroAddress");
+      });
+
+      it("Should revert if amount is zero", async function () {
+        await expect(
+          marketplace.connect(admin).rescueERC20(karratAddress, admin.address, 0)
+        ).to.be.revertedWithCustomError(marketplace, "IncorrectInput");
+      });
+
+      it("Should revert if not admin", async function () {
+        await karrat.mint(marketplaceAddress, ethers.parseEther("100"));
+
+        await expect(
+          marketplace.connect(buyer).rescueERC20(karratAddress, buyer.address, ethers.parseEther("100"))
+        ).to.be.reverted;
+      });
+    });
+
+    describe("rescueERC1155", function () {
+      it("Should allow admin to rescue ERC1155 tokens", async function () {
+        // Send NFT to marketplace (simulating stuck tokens)
+        await nft.connect(seller).safeTransferFrom(seller.address, marketplaceAddress, 1, 1, "0x");
+
+        await expect(marketplace.connect(admin).rescueERC1155(nftAddress, admin.address, 1, 1))
+          .to.emit(marketplace, "ERC1155Rescued")
+          .withArgs(nftAddress, admin.address, 1, 1);
+
+        expect(await nft.balanceOf(admin.address, 1)).to.equal(1);
+      });
+
+      it("Should revert if token address is zero", async function () {
+        await expect(
+          marketplace.connect(admin).rescueERC1155(ethers.ZeroAddress, admin.address, 1, 1)
+        ).to.be.revertedWithCustomError(marketplace, "ZeroAddress");
+      });
+
+      it("Should revert if recipient is zero address", async function () {
+        await expect(
+          marketplace.connect(admin).rescueERC1155(nftAddress, ethers.ZeroAddress, 1, 1)
+        ).to.be.revertedWithCustomError(marketplace, "ZeroAddress");
+      });
+
+      it("Should revert if amount is zero", async function () {
+        await expect(
+          marketplace.connect(admin).rescueERC1155(nftAddress, admin.address, 1, 0)
+        ).to.be.revertedWithCustomError(marketplace, "IncorrectInput");
+      });
+
+      it("Should revert if not admin", async function () {
+        await nft.connect(seller).safeTransferFrom(seller.address, marketplaceAddress, 1, 1, "0x");
+
+        await expect(
+          marketplace.connect(buyer).rescueERC1155(nftAddress, buyer.address, 1, 1)
+        ).to.be.reverted;
+      });
+    });
+  });
+
+  // ============================================
   // calculateFee TESTS
   // ============================================
 
@@ -927,6 +1069,28 @@ describe("MPHGameMarketplaceNative", function () {
 
       const balanceAfter = await ethers.provider.getBalance(marketplaceAddress);
       expect(balanceAfter).to.equal(balanceBefore + ethers.parseEther("1"));
+    });
+
+    it("Should implement onERC1155Received", async function () {
+      // This tests that the contract can receive ERC1155 tokens
+      await nft.connect(seller).safeTransferFrom(seller.address, marketplaceAddress, 1, 1, "0x");
+      expect(await nft.balanceOf(marketplaceAddress, 1)).to.equal(1);
+    });
+
+    it("Should implement onERC1155BatchReceived", async function () {
+      // Seller needs more NFTs for batch transfer
+      await nft.connect(seller).buyNFT("TestTier", [2], [2]);
+      
+      // This tests that the contract can receive batch ERC1155 tokens
+      await nft.connect(seller).safeBatchTransferFrom(
+        seller.address, 
+        marketplaceAddress, 
+        [1, 2], 
+        [1, 1], 
+        "0x"
+      );
+      expect(await nft.balanceOf(marketplaceAddress, 1)).to.equal(1);
+      expect(await nft.balanceOf(marketplaceAddress, 2)).to.equal(1);
     });
   });
 });

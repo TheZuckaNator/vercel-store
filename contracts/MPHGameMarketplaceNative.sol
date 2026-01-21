@@ -3,6 +3,8 @@ pragma solidity 0.8.29;
 
 import "./interfaces/IMPHGameMarketplaceNative.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -23,6 +25,8 @@ contract MPHGameMarketplaceNative is
     EIP712, 
     ReentrancyGuard 
 {
+    using SafeERC20 for IERC20;
+
     // ============================================
     // STATE VARIABLES
     // ============================================
@@ -117,8 +121,10 @@ contract MPHGameMarketplaceNative is
         // Transfer NFT
         IERC1155(nftContract).safeTransferFrom(seller, msg.sender, tokenId, amount, "");
 
-        // Transfer payments
+        // Transfer proceeds to seller
         _transferETH(payable(seller), sellerProceeds);
+        
+        // Transfer fee to feeReceiver
         if (fee > 0) {
             _transferETH(feeReceiver, fee);
         }
@@ -199,7 +205,7 @@ contract MPHGameMarketplaceNative is
             // Transfer NFT
             IERC1155(nftContract).safeTransferFrom(seller, msg.sender, tokenId, amount, "");
 
-            // Transfer to seller
+            // Transfer proceeds to seller
             uint256 totalPrice = price * amount;
             uint256 fee = calculateFee(totalPrice);
             _transferETH(payable(seller), totalPrice - fee);
@@ -207,7 +213,7 @@ contract MPHGameMarketplaceNative is
             emit NFTBought(nftContract, tokenId, msg.sender, seller, amount, totalPrice);
         }
 
-        // Transfer total fees
+        // Transfer total fees to feeReceiver
         if (totalFees > 0) {
             _transferETH(feeReceiver, totalFees);
         }
@@ -250,6 +256,34 @@ contract MPHGameMarketplaceNative is
         emit VerifierChanged(newVerifier);
     }
 
+    /// @inheritdoc IMPHGameMarketplaceNative
+    function rescueETH(address payable to, uint256 amount) external override onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (to == address(0)) revert ZeroAddress();
+        if (amount == 0) revert IncorrectInput();
+        if (address(this).balance < amount) revert InsufficientPayment(amount, address(this).balance);
+        
+        _transferETH(to, amount);
+        emit ETHRescued(to, amount);
+    }
+
+    /// @inheritdoc IMPHGameMarketplaceNative
+    function rescueERC20(address token, address to, uint256 amount) external override onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (token == address(0) || to == address(0)) revert ZeroAddress();
+        if (amount == 0) revert IncorrectInput();
+        
+        IERC20(token).safeTransfer(to, amount);
+        emit ERC20Rescued(token, to, amount);
+    }
+
+    /// @inheritdoc IMPHGameMarketplaceNative
+    function rescueERC1155(address token, address to, uint256 tokenId, uint256 amount) external override onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (token == address(0) || to == address(0)) revert ZeroAddress();
+        if (amount == 0) revert IncorrectInput();
+        
+        IERC1155(token).safeTransferFrom(address(this), to, tokenId, amount, "");
+        emit ERC1155Rescued(token, to, tokenId, amount);
+    }
+
     // ============================================
     // VIEW FUNCTIONS
     // ============================================
@@ -273,4 +307,26 @@ contract MPHGameMarketplaceNative is
 
     /// @notice Allow contract to receive ETH
     receive() external payable {}
+
+    /// @notice Required for ERC1155 token reception
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external pure returns (bytes4) {
+        return this.onERC1155Received.selector;
+    }
+
+    /// @notice Required for ERC1155 batch token reception
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    ) external pure returns (bytes4) {
+        return this.onERC1155BatchReceived.selector;
+    }
 }
